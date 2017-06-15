@@ -67,6 +67,7 @@
     line: '{{ item.value.line }}'
     state: 'present'
   with_dict: "{{ SUDOERS_USERS_AND_GROUPS.TO_ADD }}"
+  when: MAKE_SUDO == true
   tags: 'sudoers'
 
 - name: '/etc/skel/.bashrc populated'
@@ -84,7 +85,7 @@
     - '%users ALL=(ALL) NOPASSWD: ALL'
     - '{{ ATMOUSERNAME }} ALL=(ALL) NOPASSWD:ALL'
   # We want password-required sudo when we have an LDAP password to authenticate with
-  when: 'SETUP_LDAP is not defined or SETUP_LDAP != true'
+  when: '(SETUP_LDAP is not defined or SETUP_LDAP != true) and MAKE_SUDO == true'
 
 - name: see if user is already located in /etc/group
   command: grep "{{ ADD_TO_GROUP.GROUP }}:x:100:.*{{ ATMOUSERNAME }}.*" /etc/group

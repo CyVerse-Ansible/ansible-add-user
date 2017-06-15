@@ -25,3 +25,5 @@ ADD_TO_GROUP:
   GROUP: users
   LIST_OF_USERS:
     - '{{ ATMOUSERNAME }}'
+
+MAKE_SUDO: False
