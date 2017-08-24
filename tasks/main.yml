@@ -140,8 +140,18 @@
   shell: cp -R /etc/skel /home/"{{ ATMOUSERNAME }}"
   when: not atmouser_home.stat.exists
 
-# This chown will cause errors if /home/ATMOUSERNAME/.gvfs is mounted.  We should add code to manually unmount it if
-# it exists, then chown that user's home. -mgd
+- name: Check for mounts in /home/ATMOUSERNAME
+  set_fact:
+    mounted_in_home: "{{ item }}"
+  with_items: "{{ ansible_mounts }}"
+  when: ATMOUSERNAME in item.mount
+
+- name: Unmount volume if mounted in home directory
+  mount:
+    path: "{{ mounted_in_home.mount }}"
+    state: unmounted
+  when: mounted_in_home is defined
+
 - name: set ownership for user's home
   file:
     path: "/home/{{ ATMOUSERNAME }}"
@@ -151,3 +161,10 @@
     recurse: yes
   failed_when: False
   tags: chown_users_home
+
+- name: Remount volume if it was unmounted
+  mount:
+    path: "{{ mounted_in_home.mount }}"
+    src: "{{ mounted_in_home.device }}"
+    state: mounted
+  when: mounted_in_home is defined
